@@ -12,9 +12,7 @@ FWI=$(uci get firewall.shadowsocksr.path 2>/dev/null) # firewall include file
 usage() {
 	cat <<-EOF
 		Usage: ssr-rules [options]
-
 		Valid options are:
-
 		    -s <server_ip>          ip address of shadowsocksr remote server
 		    -l <local_port>         port number of shadowsocksr local server
 		    -S <server_ip>          ip address of shadowsocksr remote UDP server
