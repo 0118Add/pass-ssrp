@@ -148,4 +148,6 @@ end
 
 m:append(Template("shadowsocksr/server_list"))
 
+m:section(SimpleSection).template = 'shadowsocksr/status_bottom'
+
 return m
