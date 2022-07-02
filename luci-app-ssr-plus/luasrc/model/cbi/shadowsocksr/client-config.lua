@@ -302,13 +302,6 @@ o:depends("type", "ssr")
 o = s:option(Value, "obfs_param", translate("Obfs param(optional)"))
 o:depends("type", "ssr")
 
--- AlterId
-o = s:option(Value, "alter_id", translate("AlterId"))
-o.datatype = "port"
-o.default = 16
-o.rmempty = true
-o:depends({type = "v2ray", v2ray_protocol = "vmess"})
-
 -- VmessId
 o = s:option(Value, "vmess_id", translate("Vmess/VLESS ID (UUID)"))
 o.rmempty = true
@@ -564,9 +557,8 @@ o:depends({type = "v2ray", xtls = false})
 o = s:option(Value, "concurrency", translate("Concurrency"))
 o.datatype = "uinteger"
 o.rmempty = true
-o.default = "4"
+o.default = "8"
 o:depends("mux", "1")
-o:depends("type", "naiveproxy")
 
 -- [[ Cert ]]--
 o = s:option(Flag, "certificate", translate("Self-signed Certificate"))
