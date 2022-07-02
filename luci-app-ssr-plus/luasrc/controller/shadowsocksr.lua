@@ -27,6 +27,8 @@ function index()
 	entry({"admin", "services", "shadowsocksr", "restart"}, call("act_restart"))
 	entry({"admin", "services", "shadowsocksr", "delete"}, call("act_delete"))
 	entry({"admin", "services", "shadowsocksr", "cache"}, call("act_cache"))
+	entry({"admin", "services", "shadowsocksr", "flag"}, call("get_flag")) -- 获取节点国旗 iso code
+    entry({"admin", "services", "shadowsocksr", "ip"}, call("check_ip")) -- 获取ip情况
 end
 
 function subscribe()
@@ -140,4 +142,54 @@ function act_cache()
 	e.ret = luci.sys.call("pdnsd-ctl -c /var/etc/ssrplus/pdnsd empty-cache >/dev/null")
 	luci.http.prepare_content("application/json")
 	luci.http.write_json(e)
+end
+
+-- 检测 当前节点ip 和 网站访问情况
+function check_ip()
+    
+    -- 获取当前的ip和国家
+    local e = {}
+    local d = {}
+    local mm = require 'maxminddb'
+    local db = mm.open('/usr/share/shadowsocksr/GeoLite2-Country.mmdb')
+    local http = require "luci.sys"
+    local ip = string.gsub(http.httpget("https://api.ip.sb/ip"), "\n", "")
+    local res = db:lookup(ip)
+    d.flag = string.lower(res:get("country", "iso_code"))
+    d.country = res:get("country", "names", "zh-CN")
+    e.outboard = ip
+    e.outboardip = d
+
+    -- 检测国内通道
+    e.baidu = false
+    sret1 = luci.sys.call("/usr/bin/ssr-check www.baidu.com 80 3 1")
+    if sret1 == 0 then e.baidu = true end
+
+    e.taobao = false
+    sret2 = luci.sys.call("/usr/bin/ssr-check www.taobao.com 80 3 1")
+    if sret2 == 0 then e.taobao = true end
+
+    -- 检测国外通道
+    e.google = false
+    sret3 = luci.sys.call("/usr/bin/ssr-check www.google.com 80 3 1")
+    if sret3 == 0 then e.google = true end
+
+    e.youtube = false
+    sret4 = luci.sys.call("/usr/bin/ssr-check www.youtube.com 80 3 1")
+    if sret4 == 0 then e.youtube = true end
+
+    luci.http.prepare_content("application/json")
+    luci.http.write_json(e)
+end
+
+-- 获取节点国旗 iso code
+function get_flag()
+    local e = {}
+    local host = luci.http.formvalue("host")
+    local remark = luci.http.formvalue("remark")
+    local cmd = '/usr/share/shadowsocksr/getflag.sh "' .. remark .. '" ' .. host
+    e.host = host
+    e.flag = luci.sys.exec(cmd)
+    luci.http.prepare_content("application/json")
+    luci.http.write_json(e)
 end
