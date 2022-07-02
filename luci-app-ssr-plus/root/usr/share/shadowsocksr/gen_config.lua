@@ -15,7 +15,6 @@ function vmess_vless()
 				users = {
 					{
 						id = server.vmess_id,
-						alterId = (server.v2ray_protocol == "vmess" or not server.v2ray_protocol) and tonumber(server.alter_id) or nil,
 						security = (server.v2ray_protocol == "vmess" or not server.v2ray_protocol) and server.security or nil,
 						encryption = (server.v2ray_protocol == "vless") and server.vless_encryption or nil,
 						flow = (server.xtls == '1') and (server.vless_flow and server.vless_flow or "xtls-rprx-splice") or nil
@@ -228,7 +227,7 @@ local trojan = {
 local naiveproxy = {
 	proxy = (server.username and server.password and server.server and server.server_port) and "https://" .. server.username .. ":" .. server.password .. "@" .. server.server .. ":" .. server.server_port,
 	listen = (proto == "redir") and "redir" .. "://0.0.0.0:" .. tonumber(local_port) or "socks" .. "://0.0.0.0:" .. tonumber(local_port),
-	["insecure-concurrency"] = tonumber(server.concurrency) or 1
+	["insecure-concurrency"] = (socks_port ~= "0") and tonumber(socks_port) or "1"
 }
 local ss = {
 	server = (server.kcp_enable == "1") and "127.0.0.1" or server.server,

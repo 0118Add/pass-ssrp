@@ -163,7 +163,6 @@ local function processData(szType, content)
 		result.server = info.add
 		result.server_port = info.port
 		result.transport = info.net
-		result.alter_id = info.aid
 		result.vmess_id = info.id
 		result.alias = info.ps
 		-- result.mux = 1
@@ -193,13 +192,6 @@ local function processData(szType, content)
 			result.read_buffer_size = 2
 			result.write_buffer_size = 2
 		end
-		if info.net == 'grpc' then
-			if info.path then
-				result.serviceName = info.path
-			elseif info.serviceName then
-				result.serviceName = info.serviceName
-			end
-		end
 		if info.net == 'quic' then
 			result.quic_guise = info.type
 			result.quic_key = info.key
@@ -210,18 +202,10 @@ local function processData(szType, content)
 		end
 		if info.tls == "tls" or info.tls == "1" then
 			result.tls = "1"
-			if info.host then
-				result.tls_host = info.host
-			elseif info.sni then
-				result.tls_host = info.sni
-			end
+			result.tls_host = info.host
 			result.insecure = 1
 		else
 			result.tls = "0"
-		end
-		-- https://www.v2fly.org/config/protocols/vmess.html#vmess-md5-认证信息-淘汰机制
-		if info.aid and (tonumber(info.aid) > 0) then
-			result.server = nil
 		end
 	elseif szType == "ss" then
 		local idx_sp = 0
@@ -327,7 +311,7 @@ local function processData(szType, content)
 		result.v2ray_protocol = "trojan"
 		result.server = host[1]
 		-- 按照官方的建议 默认验证ssl证书
-		result.insecure = "0"
+		-- result.insecure = "0"
 		result.tls = "1"
 		if host[2]:find("?") then
 			local query = split(host[2], "?")
@@ -340,6 +324,9 @@ local function processData(szType, content)
 			if params.sni then
 				-- 未指定peer（sni）默认使用remote addr
 				result.tls_host = params.sni
+			end
+			if params.allowInsecure=="1" then
+				result.insecure="1"
 			end
 		else
 			result.server_port = host[2]
@@ -456,7 +443,7 @@ local function check_filer(result)
 
 		-- 检查是否存在过滤关键词
 		for i, v in pairs(filter_word) do
-			if tostring(result.alias):find(v, nil, true) then
+			if tostring(result.alias):find(v) then
 				filter_result = true
 			end
 		end
@@ -464,7 +451,7 @@ local function check_filer(result)
 		-- 检查是否打开了保留关键词检查，并且进行过滤
 		if check_save == true then
 			for i, v in pairs(save_word) do
-				if tostring(result.alias):find(v, nil, true) then
+				if tostring(result.alias):find(v) then
 					save_result = false
 				end
 			end
